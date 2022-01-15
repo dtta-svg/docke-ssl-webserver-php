@@ -1,0 +1,40 @@
+version: '3.2'
+services:
+    webserver: 
+          build: .
+          volumes:
+                - ./cert/mycert.crt:/etc/ssl/certs/mycert.crt
+                - ./cert/mycert.key:/etc/ssl/private/mycert.key
+                - ./www:/var/www/html/
+          ports: 
+                - "443:443"
+                - "80:80" 
+          depends_on:
+                - db
+          networks:
+                - default 
+
+    db:
+          image: mysql
+          restart: always
+          volumes:
+              - ./dump:/docker-entrypoint-initdb.d
+              - ./conf:/etc/mysql/conf.d
+              - ./db_vol:/var/lib/mysql
+          environment:
+                MYSQL_ROOT_PASSWORD: root
+                MYSQL_DATABASE: DB
+                MYSQL_USER: user
+                MYSQL_PASSWORD: passw0rd
+          ports: 
+             - "3306:3306"
+          networks:
+             - default
+    adminer:
+           image: adminer
+           restart: always
+           depends_on:
+                   - db
+           ports:
+               - "8080:8080"
+ 

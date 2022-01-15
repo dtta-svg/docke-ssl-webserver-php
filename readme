@@ -1,0 +1,13 @@
+#docker compose
+-- docker-compose -f docker-compose.yml up -d
+
+# oneline self made ssl certificate 
+
+-- openssl req -x509 -new -out mycert.crt -keyout mycert.key -days 365 -newkey rsa:4096 -sha256 -nodes
+
+#docker compose down
+
+-- docker-compose -f docker-compose.yml down
+
+#adminer username !! password
+user !! passw0rd
