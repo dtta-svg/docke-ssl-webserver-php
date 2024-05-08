@@ -1,3 +1,5 @@
+install docker use official website....
+
 #docker compose
 -- docker-compose -f docker-compose.yml up -d
 
@@ -11,5 +13,6 @@
 
 #adminer username !! password
 user !! passw0rd
+
 
 suman dutta
