@@ -1,146 +1,105 @@
-# Example MySQL config file for large systems.
 #
-# This is for a large system with memory = 512M where the system runs mainly
-# MySQL.
+# The MySQL database server configuration file.
 #
-# MySQL programs look for option files in a set of
-# locations which depend on the deployment platform.
-# You can copy this option file to one of those
-# locations. For information about these locations, see:
-# http://dev.mysql.com/doc/mysql/en/option-files.html
-#
-# In this file, you can use all long options that a program supports.
-# If you want to know which options a program supports, run the program
-# with the "--help" option.
-
-# The following options will be passed to all MySQL clients
-[client]
-#password   = your_password
-port        = 3306
-socket      = /opt/local/var/run/mysql5/mysqld.sock
-
-# Here follows entries for some specific programs
-
-# The MySQL server
-[mysqld]
-port        = 3306
-socket      = /opt/local/var/run/mysql5/mysqld.sock
-skip-locking
-key_buffer_size = 256M
-max_allowed_packet = 1M
-table_open_cache = 256
-sort_buffer_size = 1M
-read_buffer_size = 1M
-read_rnd_buffer_size = 4M
-myisam_sort_buffer_size = 64M
-thread_cache_size = 8
-query_cache_size= 16M
-# Try number of CPU's*2 for thread_concurrency
-thread_concurrency = 8
-
-# Don't listen on a TCP/IP port at all. This can be a security enhancement,
-# if all processes that need to connect to mysqld run on the same host.
-# All interaction with mysqld must be made via Unix sockets or named pipes.
-# Note that using this option without enabling named pipes on Windows
-# (via the "enable-named-pipe" option) will render mysqld useless!
+# You can copy this to one of:
+# - "/etc/mysql/my.cnf" to set global options,
+# - "~/.my.cnf" to set user-specific options.
 # 
-#skip-networking
+# One can use all long options that the program supports.
+# Run program with --help to get a list of available options and with
+# --print-defaults to see which it would actually understand and use.
+#
+# For explanations see
+# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
 
-# Replication Master Server (default)
-# binary logging is required for replication
-log-bin=mysql-bin
+# This will be passed to all mysql clients
+# It has been reported that passwords should be enclosed with ticks/quotes
+# escpecially if they contain "#" chars...
+# Remember to edit /etc/mysql/debian.cnf when changing the socket location.
 
-# binary logging format - mixed recommended
-binlog_format=mixed
+# Here is entries for some specific programs
+# The following values assume you have at least 32M ram
 
-# required unique id between 1 and 2^32 - 1
-# defaults to 1 if master-host is not set
-# but will not function as a master if omitted
-server-id   = 1
+[mysqld_safe]
+socket      = /var/run/mysqld/mysqld.sock
+nice        = 0
 
-# Replication Slave (comment out master section to use this)
+[mysqld]
 #
-# To configure this host as a replication slave, you can choose between
-# two methods :
+# * Basic Settings
 #
-# 1) Use the CHANGE MASTER TO command (fully described in our manual) -
-#    the syntax is:
+user        = mysql
+pid-file    = /var/run/mysqld/mysqld.pid
+socket      = /var/run/mysqld/mysqld.sock
+port        = 3306
+basedir     = /usr
+datadir     = /var/lib/mysql
+tmpdir      = /tmp
+lc-messages-dir = /usr/share/mysql
+skip-external-locking
 #
-#    CHANGE MASTER TO MASTER_HOST=<host>, MASTER_PORT=<port>,
-#    MASTER_USER=<user>, MASTER_PASSWORD=<password> ;
+# Instead of skip-networking the default is now to listen only on
+# localhost which is more compatible and is not less secure.
+bind-address        = 127.0.0.1
 #
-#    where you replace <host>, <user>, <password> by quoted strings and
-#    <port> by the master's port number (3306 by default).
+# * Fine Tuning
 #
-#    Example:
+key_buffer_size     = 16M
+max_allowed_packet  = 16M
+thread_stack        = 192K
+thread_cache_size       = 8
+# This replaces the startup script and checks MyISAM tables if needed
+# the first time they are touched
+myisam-recover-options  = BACKUP
+#max_connections        = 100
+#table_open_cache       = 64
+#thread_concurrency     = 10
 #
-#    CHANGE MASTER TO MASTER_HOST='125.564.12.1', MASTER_PORT=3306,
-#    MASTER_USER='joe', MASTER_PASSWORD='secret';
+# * Query Cache Configuration
 #
-# OR
+query_cache_limit   = 1M
+query_cache_size        = 16M
 #
-# 2) Set the variables below. However, in case you choose this method, then
-#    start replication for the first time (even unsuccessfully, for example
-#    if you mistyped the password in master-password and the slave fails to
-#    connect), the slave will create a master.info file, and any later
-#    change in this file to the variables' values below will be ignored and
-#    overridden by the content of the master.info file, unless you shutdown
-#    the slave server, delete master.info and restart the slaver server.
-#    For that reason, you may want to leave the lines below untouched
-#    (commented) and instead use CHANGE MASTER TO (see above)
+# * Logging and Replication
 #
-# required unique id between 2 and 2^32 - 1
-# (and different from the master)
-# defaults to 2 if master-host is set
-# but will not function as a slave if omitted
-#server-id       = 2
+# Both location gets rotated by the cronjob.
+# Be aware that this log type is a performance killer.
+# As of 5.1 you can enable the log at runtime!
+#general_log_file        = /var/log/mysql/mysql.log
+#general_log             = 1
 #
-# The replication master for this slave - required
-#master-host     =   <hostname>
+# Error log - should be very few entries.
 #
-# The username the slave will use for authentication when connecting
-# to the master - required
-#master-user     =   <username>
+log_error = /var/log/mysql/error.log
 #
-# The password the slave will authenticate with when connecting to
-# the master - required
-#master-password =   <password>
+# Here you can see queries with especially long duration
+#slow_query_log     = 1
+#slow_query_log_file    = /var/log/mysql/mysql-slow.log
+#long_query_time = 2
+#log-queries-not-using-indexes
 #
-# The port the master is listening on.
-# optional - defaults to 3306
-#master-port     =  <port>
+# The following can be used as easy to replay backup logs or for replication.
+# note: if you are setting up a replication slave, see README.Debian about
+#       other settings you may need to change.
+#server-id      = 1
+#log_bin            = /var/log/mysql/mysql-bin.log
+expire_logs_days    = 10
+max_binlog_size   = 100M
+#binlog_do_db       = include_database_name
+#binlog_ignore_db   = include_database_name
 #
-# binary logging - not required for slaves, but recommended
-#log-bin=mysql-bin
-
-# Uncomment the following if you are using InnoDB tables
-#innodb_data_home_dir = /opt/local/var/db/mysql5
-#innodb_data_file_path = ibdata1:10M:autoextend
-#innodb_log_group_home_dir = /opt/local/var/db/mysql5
-# You can set .._buffer_pool_size up to 50 - 80 %
-# of RAM but beware of setting memory usage too high
-#innodb_buffer_pool_size = 256M
-#innodb_additional_mem_pool_size = 20M
-# Set .._log_file_size to 25 % of buffer pool size
-#innodb_log_file_size = 64M
-#innodb_log_buffer_size = 8M
-#innodb_flush_log_at_trx_commit = 1
-#innodb_lock_wait_timeout = 50
-
-[mysqldump]
-quick
-max_allowed_packet = 16M
-
-[mysql]
-no-auto-rehash
-# Remove the next comment character if you are not familiar with SQL
-#safe-updates
-
-[myisamchk]
-key_buffer_size = 128M
-sort_buffer_size = 128M
-read_buffer = 2M
-write_buffer = 2M
-
-[mysqlhotcopy]
-interactive-timeout
+# * InnoDB
+#
+# InnoDB is enabled by default with a 10MB datafile in /var/lib/mysql/.
+# Read the manual for more InnoDB related options. There are many!
+#
+# * Security Features
+#
+# Read the manual, too, if you want chroot!
+# chroot = /var/lib/mysql/
+#
+# For generating SSL certificates I recommend the OpenSSL GUI "tinyca".
+#
+# ssl-ca=/etc/mysql/cacert.pem
+# ssl-cert=/etc/mysql/server-cert.pem
+# ssl-key=/etc/mysql/server-key.pem
